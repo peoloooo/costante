@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Costante">
+  <meta name="theme-color" content="#FFF8F1">
+  <title>Costante</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="app"></main>
+  <nav id="tabs" hidden>
+    <button data-a="tab" data-tab="today"><span>🔥</span>Oggi</button>
+    <button data-a="tab" data-tab="exams"><span>📚</span>Esami</button>
+    <button data-a="tab" data-tab="trophies"><span>🏆</span>Trofei</button>
+  </nav>
+  <div id="sheet-wrap" hidden><div id="sheet-bg" data-a="closeSheet"></div><div id="sheet"></div></div>
+  <div id="toast" hidden></div>
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+  </script>
+</body>
+</html>
