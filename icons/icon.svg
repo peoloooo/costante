@@ -1,15 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#FF8A5B"/>
-      <stop offset="1" stop-color="#E8453C"/>
-    </linearGradient>
-    <linearGradient id="fl" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FFF6D6"/>
-      <stop offset="1" stop-color="#FFD36B"/>
-    </linearGradient>
-  </defs>
-  <rect width="1024" height="1024" fill="url(#bg)"/>
-  <path d="M512 170 C 600 300, 760 400, 740 600 C 725 760, 620 850, 512 850 C 404 850, 299 760, 284 600 C 272 470, 360 400, 400 300 C 430 380, 460 420, 500 430 C 480 340, 470 260, 512 170 Z" fill="url(#fl)"/>
-  <path d="M512 520 C 560 590, 620 640, 610 720 C 600 790, 560 820, 512 820 C 464 820, 424 790, 414 720 C 406 660, 450 610, 512 520 Z" fill="#FF8A5B"/>
+  <rect width="1024" height="1024" fill="#5B4FE6"/>
+  <g fill="none" stroke="#FFFFFF" stroke-opacity=".12" stroke-width="6">
+    <path d="M512 90c180 0 380 100 400 300s-100 430-330 450S150 760 130 560 310 90 512 90z"/>
+    <path d="M512 190c130 0 280 70 295 215s-75 320-245 335-330-95-345-240S380 190 512 190z"/>
+  </g>
+  <path d="M512 180 C 560 330, 760 420, 760 610 C 760 750, 650 850, 512 850 C 374 850, 264 750, 264 610 C 264 490, 330 430, 350 330 C 410 370, 450 440, 460 520 C 510 420, 530 300, 512 180 Z" fill="#D9F43B" stroke="#1F1D2B" stroke-width="22" stroke-linejoin="round"/>
 </svg>

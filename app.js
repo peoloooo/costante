@@ -269,6 +269,47 @@ const $ = sel => document.querySelector(sel);
 const app = $('#app');
 const ui = { tab: 'today', onb: 0, draftDays: null, draftSpeed: 6, examId: null, checkin: null };
 
+/* ---------- icone (linea) ---------- */
+const ICONS = {
+  back: '<path d="M15 5l-7 7 7 7"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  sliders: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
+  book: '<path d="M4 5.5C4 4.1 5.1 3 6.5 3H20v15H6.5C5.1 18 4 19.1 4 20.5z"/><path d="M4 20.5C4 21.9 5.1 23 6.5 23H20v-5"/>',
+  flame: '<path d="M12 2.5c.8 3.6 5.5 5.7 5.5 11a5.5 5.5 0 0 1-11 0c0-2.8 1.6-4 2-6.5 1.6 1 2.6 2.6 2.8 4.6 1.2-2.6 1.4-5.6.7-9.1z"/>',
+  trophy: '<path d="M8 3.5h8v6a4 4 0 0 1-8 0z"/><path d="M8 5.5H5.2c0 2.6 1.3 4.2 3.1 4.5M16 5.5h2.8c0 2.6-1.3 4.2-3.1 4.5M12 13.5v4M8.5 21h7M10 17.5h4"/>',
+  pencil: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+  pages: '<path d="M3.5 5.5c3-1.4 5.5-1.4 8.5.3v14c-3-1.7-5.5-1.7-8.5-.3zM20.5 5.5c-3-1.4-5.5-1.4-8.5.3v14c3-1.7 5.5-1.7 8.5-.3z"/>',
+  review: '<path d="M4.5 10a8 8 0 0 1 14.2-3.3L20.5 9M20.5 4v5h-5M19.5 14a8 8 0 0 1-14.2 3.3L3.5 15M3.5 20v-5h5"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  arrow: '<path d="M7 17L17 7M9 7h8v8"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
+  trash: '<path d="M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13"/>',
+  calendar: '<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+  lock: '<rect x="5" y="10.5" width="14" height="10" rx="3"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>',
+};
+const ic = n => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]}</svg>`;
+const circleBtn = (icon, action, label, attrs = '') => `<button class="circle" data-a="${action}" aria-label="${label}" ${attrs}>${ic(icon)}</button>`;
+const cta = (label, action, opts = {}) => `<button class="cta ${opts.cls || ''}" data-a="${action}" ${opts.id ? `data-id="${opts.id}"` : ''}>
+    <span class="cta-ic">${ic(opts.icon || 'pages')}</span><span class="cta-l">${label}</span><span class="cta-chev"><i>›</i><i>›</i><i>›</i></span></button>`;
+const STAR = (() => {
+  const pts = [];
+  for (let i = 0; i < 36; i++) { const r = i % 2 ? 39 : 50, a = Math.PI * 2 * i / 36; pts.push((50 + r * Math.cos(a)).toFixed(1) + ',' + (50 + r * Math.sin(a)).toFixed(1)); }
+  return `<svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="${pts.join(' ')}"/></svg>`;
+})();
+const sticker = (html, cls = '') => `<div class="sticker ${cls}">${STAR}<span>${html}</span></div>`;
+const hero = (left, title, right, body = '') => `
+  <header class="hero">
+    <div class="hero-bar">${left || '<span class="sp"></span>'}<span class="hero-t">${title}</span>${right || '<span class="sp"></span>'}</div>
+    ${body}
+  </header>`;
+function progress(done, total, label = 'pagine') {
+  const pct = Math.round(done / total * 100);
+  return `<div class="prog"><span>${pct}%</span><span>${done}/${total} ${label}</span></div>
+    <div class="bar"><i style="width:${pct}%" ${pct ? '' : 'hidden'}></i></div>`;
+}
+const dpill = (txt, dot = true) => `<span class="dpill">${dot ? '<i class="dot"></i>' : ''}${txt}</span>`;
+const cap = s => s.replace(/^\w/, c => c.toUpperCase());
+
 function render() {
   const nav = $('#tabs');
   if (!state.settings || !state.exams.length && ui.onb > 0) { nav.hidden = true; app.innerHTML = renderOnboarding(); return; }
@@ -282,29 +323,21 @@ function render() {
 /* ---------- onboarding ---------- */
 function renderOnboarding() {
   if (ui.onb === 0) return `
-    <section class="onb center">
-      <div class="logo">🔥</div>
-      <h1>Costante</h1>
-      <p class="muted">Un passo al giorno fino all'esame.<br>Ti preparo un piano di studio, tu tieni viva la fiamma.</p>
-      <label class="field"><span>Come ti chiami?</span>
+    <section class="welcome">
+      <div class="hero-bar"><span class="sp"></span><span class="hero-t">COSTANTE</span><span class="sp"></span></div>
+      <h1 class="mega xl">UN PASSO<br>AL GIORNO</h1>
+      ${sticker('STREAK<br>&amp; TROFEI', 'welcome-st')}
+      <p class="hero-sub">Ti preparo un piano di studio fino all'esame.<br>Tu tieni accesa la fiamma.</p>
+      <label class="field on-dark"><span>Come ti chiami?</span>
         <input id="f-name" type="text" autocomplete="given-name" placeholder="Il tuo nome" value="${esc(state.name)}"></label>
-      <button class="btn primary big" data-a="onbNext">Iniziamo</button>
+      ${cta('Iniziamo', 'onbNext', { icon: 'flame' })}
     </section>`;
-  if (ui.onb === 1) return `
-    <section class="onb">
-      <div class="step">Passo 1 di 2</div>
-      <h1>Quando puoi studiare?</h1>
-      <p class="muted">Scegli i giorni e quante ore hai a disposizione. Vale per tutti gli esami.</p>
-      ${availabilityForm()}
-      <button class="btn primary big" data-a="onbNext">Avanti</button>
-    </section>`;
-  return `
-    <section class="onb">
-      <div class="step">Passo 2 di 2</div>
-      <h1>Il primo esame</h1>
-      ${examForm(null)}
-      <button class="btn primary big" data-a="saveExam">Crea il piano</button>
-    </section>`;
+  if (ui.onb === 1) return hero(null, 'PASSO 1 DI 2', null, `
+      <h1 class="mega">QUANDO<br>STUDI?</h1>
+      <p class="hero-sub">Giorni e ore a disposizione. Vale per tutti gli esami.</p>`) + `
+    <div class="wrap">${availabilityForm()}${cta('Avanti', 'onbNext', { icon: 'calendar' })}</div>`;
+  return hero(null, 'PASSO 2 DI 2', null, `<h1 class="mega">IL PRIMO<br>ESAME</h1>`) + `
+    <div class="wrap">${examForm(null)}${cta('Crea il piano', 'saveExam', { icon: 'flame' })}</div>`;
 }
 
 function availabilityForm() {
@@ -314,12 +347,12 @@ function availabilityForm() {
       ${DAY_ORDER.map(d => {
     const h = +days[d] || 0;
     return `<div class="day-row ${h > 0 ? 'on' : ''}">
-          <button class="day-toggle" data-a="dayToggle" data-d="${d}">${DAY_NAMES[d]}</button>
+          <button class="day-toggle" data-a="dayToggle" data-d="${d}"><i class="tick">${h > 0 ? ic('check') : ''}</i>${DAY_NAMES[d]}</button>
           ${h > 0 ? `<div class="stepper">
-              <button data-a="dayHours" data-d="${d}" data-v="-0.5">−</button>
+              <button data-a="dayHours" data-d="${d}" data-v="-0.5" aria-label="meno">−</button>
               <span>${String(h).replace('.', ',')} h</span>
-              <button data-a="dayHours" data-d="${d}" data-v="0.5">+</button></div>`
-        : `<span class="muted small">libero</span>`}
+              <button data-a="dayHours" data-d="${d}" data-v="0.5" aria-label="più">+</button></div>`
+        : `<span class="off-lbl">libero</span>`}
         </div>`;
   }).join('')}
     </div>
@@ -389,14 +422,17 @@ function examPreview() {
   if (!e.totalPages || !e.examDate || !e.pagesPerDay) return '';
   if (e.examDate <= today()) return `<div class="note warn">La data dell'esame deve essere nel futuro.</div>`;
   const a = analyze(e);
-  const cap = capacityWarning(e);
+  const capW = capacityWarning(e);
   const parts = [];
-  parts.push(`<div class="note"><b>Il piano</b><br>
-    ${plural(a.studyDays, 'giorno', 'giorni')} di studio, poi ripasso dal <b>${fmtDate(a.rs)}</b>.<br>
-    ${isFinite(a.perDay) ? `Circa <b>${a.perDay} pagine</b> per giorno di studio.` : ''}
-    ${a.finish ? `<br>Finisci il programma il <b>${fmtDate(a.finish)}</b>.` : ''}</div>`);
+  parts.push(`<div class="note"><div class="note-t">IL PIANO</div>
+    <div class="note-grid">
+      <div><b>${a.studyDays}</b><small>giorni di studio</small></div>
+      <div><b>${isFinite(a.perDay) ? a.perDay : '–'}</b><small>pagine al giorno</small></div>
+      <div><b>${fmtDate(a.rs)}</b><small>inizio ripasso</small></div>
+    </div>
+    ${a.finish ? `<p>Finisci il programma il <b>${fmtDate(a.finish)}</b>.</p>` : ''}</div>`);
   for (const w of a.warnings) parts.push(`<div class="note warn">${w}</div>`);
-  if (cap) parts.push(`<div class="note warn">${cap}</div>`);
+  if (capW) parts.push(`<div class="note warn">${capW}</div>`);
   return parts.join('');
 }
 
@@ -408,22 +444,21 @@ function renderToday() {
   const hour = new Date().getHours();
   const hello = hour < 13 ? 'Buongiorno' : hour < 18 ? 'Buon pomeriggio' : 'Buonasera';
   let sub;
-  if (st.todayDone) sub = 'Oggi è fatta ✓ La serie è al sicuro.';
+  if (st.todayDone) sub = 'Oggi è fatta. La serie è al sicuro.';
   else if (studyToday) sub = st.streak ? 'Studia oggi per tenere accesa la fiamma.' : 'Oggi è il giorno giusto per iniziare una serie.';
-  else sub = 'Oggi è giorno libero: la serie non si rompe.';
+  else sub = 'Giorno libero: la serie non si rompe.';
 
-  // settimana corrente lun-dom
   const mon = addDays(t, -((dow(t) + 6) % 7));
   const week = [];
   for (let i = 0; i < 7; i++) {
     const d = addDays(mon, i);
     let cls = 'future', mark = '';
     if (d <= t) {
-      if (st.act.has(d)) { cls = 'done'; mark = '✓'; }
+      if (st.act.has(d)) { cls = 'done'; mark = ic('check'); }
       else if (st.saved.has(d)) { cls = 'saved'; mark = '🛟'; }
-      else if (d === t) { cls = 'today'; }
-      else if (isStudyDay(d) && hasExamOn(d) && d >= state.createdAt) { cls = 'miss'; mark = '·'; }
-      else { cls = 'rest'; mark = '–'; }
+      else if (d === t) cls = 'today';
+      else if (isStudyDay(d) && hasExamOn(d) && d >= state.createdAt) cls = 'miss';
+      else cls = 'rest';
     } else if (!isStudyDay(d)) cls = 'future rest';
     week.push(`<div class="wd ${cls} ${d === t ? 'is-today' : ''}"><small>${DAY_SHORT[dow(d)]}</small><i>${mark}</i></div>`);
   }
@@ -431,25 +466,20 @@ function renderToday() {
   const exams = activeExams().sort((a, b) => a.examDate.localeCompare(b.examDate));
   const tasks = exams.map(e => taskCard(e, t)).join('');
 
-  return `
-    <header class="top">
-      <div><p class="muted small">${hello}${state.name ? ', ' + esc(state.name) : ''}</p>
-      <h1>${fmtDay(t).replace(/^\w/, c => c.toUpperCase())}</h1></div>
-      <button class="icon-btn" data-a="openSettings" aria-label="Impostazioni">⚙️</button>
-    </header>
-
-    <section class="streak-card ${st.todayDone ? 'lit' : ''}" data-a="streakInfo">
-      <div class="flame">🔥</div>
-      <div class="streak-num">${st.streak}</div>
-      <div class="streak-lbl">${st.streak === 1 ? 'giorno di fila' : 'giorni di fila'}</div>
-      <p class="streak-sub">${sub}</p>
+  return hero(circleBtn('info', 'streakInfo', 'Come funziona la serie'), cap(fmtDay(t)).toUpperCase(), circleBtn('sliders', 'openSettings', 'Impostazioni'), `
+      <p class="hero-hello">${hello}${state.name ? ', ' + esc(state.name) : ''}</p>
+      <div class="streak-row ${st.todayDone ? 'lit' : ''}">
+        <div class="mega num">${st.streak}</div>
+        ${sticker(`RECORD<b>${st.best}</b>`)}
+      </div>
+      <div class="mega-sub">${st.streak === 1 ? 'GIORNO DI FILA' : 'GIORNI DI FILA'}</div>
+      <p class="hero-sub">${sub}</p>
       <div class="week">${week.join('')}</div>
-      <div class="streak-meta"><span>🛟 ${st.jolly} jolly</span><span>Record: ${st.best}</span></div>
-    </section>
-
-    <h2>Da fare oggi</h2>
-    ${tasks || `<div class="empty">Nessun esame attivo. <button class="link" data-a="newExam">Aggiungine uno</button></div>`}
-  `;
+      <div class="hero-foot">${dpill(`${st.jolly} ${st.jolly === 1 ? 'jolly' : 'jolly'} 🛟`)}${st.todayDone ? dpill('Oggi fatto ✓') : dpill(studyToday ? 'Da fare oggi' : 'Giorno libero')}</div>`) + `
+    <div class="wrap">
+      <h2 class="sec">DA FARE OGGI</h2>
+      ${tasks || `<div class="empty">Nessun esame attivo.${cta('Aggiungi un esame', 'newExam', { icon: 'plus' })}</div>`}
+    </div>`;
 }
 
 function taskCard(e, t) {
@@ -457,63 +487,63 @@ function taskCard(e, t) {
   const log = getLog(t, e.id);
   const done = log ? log.pages : 0;
   const daysLeft = diffDays(t, e.examDate);
-  const head = `<div class="task-head"><b>${esc(e.name)}</b><span class="pill">${daysLeft > 0 ? 'esame tra ' + plural(daysLeft, 'giorno', 'giorni') : daysLeft === 0 ? 'esame oggi' : 'esame passato'}</span></div>`;
-  const total = doneTotal(e);
-  const bar = `<div class="bar"><i style="width:${Math.round(total / e.totalPages * 100)}%"></i></div>
-    <div class="small muted">${total}/${e.totalPages} pagine del programma</div>`;
+  const when = daysLeft > 0 ? 'tra ' + plural(daysLeft, 'giorno', 'giorni') : daysLeft === 0 ? 'esame oggi' : 'esame passato';
+  const head = `<div class="card-h"><h3>${esc(e.name)}</h3>${dpill(when)}</div>`;
+  const prog = progress(doneTotal(e), e.totalPages);
 
-  if (p.phase === 'after') return `<div class="task">${head}
-      <p>Com'è andato l'esame?</p>
-      <div class="btns"><button class="btn primary" data-a="passed" data-id="${e.id}">Superato 🎉</button>
-      <button class="btn" data-a="editExam" data-id="${e.id}">Cambia data</button></div></div>`;
-  if (p.phase === 'examday') return `<div class="task hl">${head}<p class="big-txt">In bocca al lupo! 🍀</p></div>`;
-  if (p.phase === 'rest') return `<div class="task ${done ? 'ok' : 'rest'}">${head}
-      <p class="${done ? '' : 'muted'}">${done ? `Giorno libero, ma hai studiato ${plural(done, 'pagina', 'pagine')} 💪` : 'Giorno libero 😌'}</p>${bar}
-      <div class="btns"><button class="btn ghost" data-a="checkin" data-id="${e.id}">${done ? 'Aggiorna' : 'Studia lo stesso'}</button></div></div>`;
+  if (p.phase === 'after') return `<article class="card">${head}
+      <p class="card-p">Com'è andato l'esame?</p>
+      ${cta('Superato!', 'passed', { id: e.id, icon: 'trophy' })}
+      <button class="btn-line" data-a="editExam" data-id="${e.id}">Cambia data</button></article>`;
+  if (p.phase === 'examday') return `<article class="card hl">${head}<p class="big-txt">IN BOCCA AL LUPO! 🍀</p></article>`;
+  if (p.phase === 'rest') return `<article class="card ${done ? 'ok' : 'soft'}">${head}
+      <p class="card-p">${done ? `Giorno libero, ma hai studiato ${plural(done, 'pagina', 'pagine')} 💪` : 'Giorno libero 😌'}</p>${prog}
+      <button class="btn-line" data-a="checkin" data-id="${e.id}">${done ? 'Aggiorna le pagine' : 'Studia lo stesso'}</button></article>`;
   if (p.phase === 'review' || p.phase === 'finished') {
     const ok = log && log.review;
-    return `<div class="task ${ok ? 'ok' : ''}">${head}
-      <p>${p.phase === 'review' ? '🔁 Giorno di ripasso' : '🎉 Programma finito! Puoi già ripassare.'}</p>
-      <div class="btns"><button class="btn ${ok ? '' : 'primary'}" data-a="toggleReview" data-id="${e.id}">${ok ? '✓ Ripassato' : 'Ho ripassato oggi'}</button></div></div>`;
+    return `<article class="card ${ok ? 'ok' : ''}">${head}
+      <p class="card-p">${p.phase === 'review' ? 'Giorno di ripasso' : 'Programma finito! Puoi già ripassare.'}</p>${prog}
+      ${cta(ok ? 'Ripassato ✓' : 'Ho ripassato oggi', 'toggleReview', { id: e.id, icon: 'review', cls: ok ? 'done' : '' })}</article>`;
   }
   const ok = done >= p.target;
   const pct = Math.min(100, Math.round(done / p.target * 100));
-  return `<div class="task ${ok ? 'ok' : ''}">${head}
+  return `<article class="card ${ok ? 'ok' : ''}">${head}
     <div class="goal">
       <div class="ring" style="--p:${pct}"><span>${done}<small>/${p.target}</small></span></div>
-      <div><div class="goal-t">${ok ? 'Obiettivo raggiunto! 🎯' : p.target + ' pagine oggi'}</div>
-        <div class="muted small">pag. ${p.from}–${p.to}${p.phase === 'catchup' ? ' · recupero prima del ripasso' : ''}</div></div>
+      <div><div class="goal-t">${ok ? 'OBIETTIVO RAGGIUNTO' : p.target + ' PAGINE OGGI'}</div>
+        <div class="goal-s">pag. ${p.from}–${p.to}${p.phase === 'catchup' ? ' · recupero prima del ripasso' : ''}</div></div>
     </div>
-    ${bar}
-    <div class="btns"><button class="btn ${ok ? '' : 'primary'}" data-a="checkin" data-id="${e.id}">${done ? 'Aggiorna' : 'Segna le pagine'}</button></div>
-  </div>`;
+    ${prog}
+    ${cta(done ? 'Aggiorna' : 'Segna le pagine', 'checkin', { id: e.id, cls: ok ? 'done' : '' })}
+  </article>`;
 }
 
 /* ---------- Esami ---------- */
 function renderExams() {
   const list = [...state.exams].sort((a, b) => (a.status !== 'active') - (b.status !== 'active') || a.examDate.localeCompare(b.examDate));
-  return `
-    <header class="top"><h1>Esami</h1><button class="btn primary sm" data-a="newExam">+ Nuovo</button></header>
+  return hero(null, 'I MIEI ESAMI', circleBtn('plus', 'newExam', 'Nuovo esame'), `<h1 class="mega">ESAMI</h1>
+      <p class="hero-sub">${plural(activeExams().length, 'esame in corso', 'esami in corso')}</p>`) + `
+    <div class="wrap">
     ${list.map(e => {
     const total = doneTotal(e);
-    const pct = Math.round(total / e.totalPages * 100);
     const d = diffDays(today(), e.examDate);
-    const status = e.status === 'passed' ? '<span class="pill ok">Superato 🏆</span>'
-      : d > 0 ? `<span class="pill">tra ${plural(d, 'giorno', 'giorni')}</span>` : d === 0 ? '<span class="pill">oggi</span>' : '<span class="pill warn">da aggiornare</span>';
-    return `<button class="card exam" data-a="openExam" data-id="${e.id}">
-        <div class="task-head"><b>${esc(e.name)}</b>${status}</div>
-        <div class="small muted">Esame il ${fmtDate(e.examDate)} · ${total}/${e.totalPages} pagine</div>
-        <div class="bar"><i style="width:${pct}%"></i></div>
+    const status = e.status === 'passed' ? dpill('Superato 🏆', false)
+      : d > 0 ? dpill('tra ' + plural(d, 'giorno', 'giorni')) : d === 0 ? dpill('oggi') : dpill('da aggiornare');
+    return `<button class="card exam-card" data-a="openExam" data-id="${e.id}">
+        <div class="card-h">${status}<span class="go">${ic('arrow')}</span></div>
+        <h3 class="exam-name">${esc(e.name)}</h3>
+        <div class="goal-s">Esame ${fmtDay(e.examDate)}</div>
+        ${progress(total, e.totalPages)}
       </button>`;
-  }).join('') || '<div class="empty">Ancora nessun esame.</div>'}`;
+  }).join('') || `<div class="empty">Ancora nessun esame.${cta('Aggiungi un esame', 'newExam', { icon: 'plus' })}</div>`}
+    </div>`;
 }
 
 function renderExamDetail(e) {
   if (!e) { ui.examId = null; return renderExams(); }
   const a = analyze(e);
   const total = doneTotal(e);
-  const cap = e.status === 'active' ? capacityWarning() : null;
-  // proiezione prossimi giorni
+  const capW = e.status === 'active' ? capacityWarning() : null;
   const rows = [];
   if (e.status === 'active') {
     let done = a.done, d = today();
@@ -522,48 +552,52 @@ function renderExamDetail(e) {
       if (d === today()) { const l = getLog(d, e.id); done += Math.max(p.target, l ? l.pages : 0); if (!p.target) continue; }
       else done += p.target;
       if (p.phase === 'rest') continue;
-      const lbl = p.target ? `${p.target} pag. <span class="muted">(${p.from}–${p.to})</span>` : p.phase === 'review' || p.phase === 'finished' ? '🔁 ripasso' : '';
+      const lbl = p.target ? `<b>${p.target} pag.</b> <span>${p.from}–${p.to}</span>` : p.phase === 'review' || p.phase === 'finished' ? '<b>ripasso</b>' : '';
       rows.push(`<li><span>${fmtDay(d)}</span><span>${lbl}</span></li>`);
     }
-    if (d === e.examDate || rows.length < 14) rows.push(`<li class="hl"><span>${fmtDay(e.examDate)}</span><span>📝 esame</span></li>`);
+    if (d === e.examDate || rows.length < 14) rows.push(`<li class="hl"><span>${fmtDay(e.examDate)}</span><span><b>ESAME</b></span></li>`);
   }
   const hist = logsOf(e.id).filter(l => l.pages > 0 || l.review).sort((x, y) => y.date.localeCompare(x.date)).slice(0, 30)
-    .map(l => `<li><span>${fmtDay(l.date)}</span><span>${l.pages ? l.pages + ' pag.' : ''}${l.review ? ' 🔁' : ''}</span></li>`).join('');
+    .map(l => `<li><span>${fmtDay(l.date)}</span><span><b>${l.pages ? l.pages + ' pag.' : ''}${l.review ? ' ripasso' : ''}</b></span></li>`).join('');
 
-  return `
-    <header class="top"><button class="link back" data-a="backExams">‹ Esami</button>
-      <button class="btn sm" data-a="editExam" data-id="${e.id}">Modifica</button></header>
-    <h1>${esc(e.name)}</h1>
-    <p class="muted">Esame ${fmtDay(e.examDate)}${e.status === 'passed' ? ' · superato 🏆' : ''}</p>
-    <div class="stats">
-      <div><b>${Math.round(total / e.totalPages * 100)}%</b><small>fatto</small></div>
-      <div><b>${e.totalPages - total}</b><small>pagine rimaste</small></div>
-      <div><b>${e.status === 'active' && isFinite(a.perDay) ? a.perDay : '–'}</b><small>pag./giorno</small></div>
-    </div>
-    <div class="bar"><i style="width:${Math.round(total / e.totalPages * 100)}%"></i></div>
-    ${e.status === 'active' ? `<p class="small muted">Ripasso dal ${fmtDate(a.rs)} (${plural(e.reviewDays, 'giorno', 'giorni')})${a.finish ? ' · fine programma prevista ' + fmtDate(a.finish) : ''}</p>` : ''}
-    ${a.warnings.map(w => `<div class="note warn">${w}</div>`).join('')}
-    ${cap ? `<div class="note warn">${cap}</div>` : ''}
-    ${rows.length ? `<h2>Prossimi giorni</h2><ul class="plan">${rows.join('')}</ul>` : ''}
-    ${hist ? `<h2>Storico</h2><ul class="plan">${hist}</ul>` : ''}
-    <button class="btn danger-ghost" data-a="deleteExam" data-id="${e.id}">Elimina esame</button>`;
+  return hero(circleBtn('back', 'backExams', 'Indietro'), e.status === 'passed' ? 'SUPERATO 🏆' : 'ESAME', circleBtn('pencil', 'editExam', 'Modifica', `data-id="${e.id}"`), `
+      <h1 class="mega md">${esc(e.name).toUpperCase()}</h1>
+      <p class="hero-sub">Esame ${fmtDay(e.examDate)}</p>
+      <div class="stats">
+        <div><b>${Math.round(total / e.totalPages * 100)}%</b><small>fatto</small></div>
+        <div><b>${e.totalPages - total}</b><small>pagine rimaste</small></div>
+        <div><b>${e.status === 'active' && isFinite(a.perDay) ? a.perDay : '–'}</b><small>pag. al giorno</small></div>
+      </div>`) + `
+    <div class="wrap">
+      <article class="card">
+        <div class="card-h"><h3>PROGRESSO</h3>${ic('book')}</div>
+        ${progress(total, e.totalPages)}
+        ${e.status === 'active' ? `<p class="card-p small">Ripasso dal ${fmtDate(a.rs)} (${plural(e.reviewDays, 'giorno', 'giorni')})${a.finish ? ' · fine programma prevista il ' + fmtDate(a.finish) : ''}</p>` : ''}
+      </article>
+      ${a.warnings.map(w => `<div class="note warn">${w}</div>`).join('')}
+      ${capW ? `<div class="note warn">${capW}</div>` : ''}
+      ${rows.length ? `<article class="card"><div class="card-h"><h3>PROSSIMI GIORNI</h3>${ic('calendar')}</div><ul class="plan">${rows.join('')}</ul></article>` : ''}
+      ${hist ? `<article class="card"><div class="card-h"><h3>STORICO</h3>${ic('review')}</div><ul class="plan">${hist}</ul></article>` : ''}
+      <button class="btn-danger" data-a="deleteExam" data-id="${e.id}">${ic('trash')} Elimina esame</button>
+    </div>`;
 }
 
 /* ---------- Trofei ---------- */
 function renderTrophies() {
   const won = TROPHIES.filter(t => state.trophies[t.id]).length;
-  return `
-    <header class="top"><h1>Trofei</h1><span class="pill">${won}/${TROPHIES.length}</span></header>
+  return hero(null, 'BACHECA', `<span class="count">${won}/${TROPHIES.length}</span>`, `<h1 class="mega">TROFEI</h1>
+      ${progress(won, TROPHIES.length, 'sbloccati')}`) + `
+    <div class="wrap">
     <div class="trophies">
       ${TROPHIES.map(t => {
     const d = state.trophies[t.id];
     return `<div class="trophy ${d ? 'won' : ''}">
-          <div class="t-icon">${d ? t.icon : '🔒'}</div>
+          <div class="t-icon">${d ? t.icon : ic('lock')}</div>
           <b>${t.name}</b><small>${t.desc}</small>
           ${d ? `<em>${fmtDate(d)}</em>` : ''}
         </div>`;
   }).join('')}
-    </div>`;
+    </div></div>`;
 }
 
 /* ---------- sheet (finestre dal basso) ---------- */
@@ -576,55 +610,54 @@ function renderCheckin() {
   const p = planFor(e, date);
   const t = today();
   return `
-    <h2>${esc(e.name)}</h2>
+    <h2 class="sheet-t">${esc(e.name).toUpperCase()}</h2>
     <div class="seg">
       <button class="${date === t ? 'on' : ''}" data-a="ciDate" data-v="0">Oggi</button>
       <button class="${date !== t ? 'on' : ''}" data-a="ciDate" data-v="-1">Ieri</button>
     </div>
-    <p class="muted center">${p.target ? `Obiettivo: <b>${p.target} pagine</b> (pag. ${p.from}–${p.to})` : 'Nessun obiettivo per questo giorno: ogni pagina è un bonus.'}</p>
-    <p class="center small">Quante pagine hai studiato?</p>
+    <p class="center sheet-p">${p.target ? `Obiettivo: <b>${p.target} pagine</b> · pag. ${p.from}–${p.to}` : 'Nessun obiettivo per questo giorno: ogni pagina è un bonus.'}</p>
     <div class="counter">
-      <button data-a="ciAdd" data-v="-1">−</button>
-      <input id="ci-val" type="number" inputmode="numeric" min="0" value="${value}">
-      <button data-a="ciAdd" data-v="1">+</button>
+      <button data-a="ciAdd" data-v="-1" aria-label="meno">−</button>
+      <div><input id="ci-val" type="number" inputmode="numeric" min="0" value="${value}"><small>pagine</small></div>
+      <button data-a="ciAdd" data-v="1" aria-label="più">+</button>
     </div>
     <div class="quick">
       <button class="chip" data-a="ciAdd" data-v="5">+5</button>
       <button class="chip" data-a="ciAdd" data-v="10">+10</button>
-      ${p.target ? `<button class="chip" data-a="ciSet" data-v="${p.target}">Tutto l'obiettivo</button>` : ''}
+      ${p.target ? `<button class="chip lime" data-a="ciSet" data-v="${p.target}">Tutto l'obiettivo</button>` : ''}
     </div>
-    <button class="btn primary big" data-a="ciSave">Salva</button>`;
+    ${cta('Salva', 'ciSave', { icon: 'check' })}`;
 }
 
 function renderSettings() {
   return `
-    <h2>Impostazioni</h2>
+    <h2 class="sheet-t">IMPOSTAZIONI</h2>
     <label class="field"><span>Nome</span><input id="f-name" type="text" value="${esc(state.name)}"></label>
-    <h3>Disponibilità</h3>
+    <h3 class="sub-t">DISPONIBILITÀ</h3>
     ${availabilityForm()}
-    <button class="btn primary big" data-a="saveSettings">Salva</button>
-    <h3>Backup</h3>
+    ${cta('Salva', 'saveSettings', { icon: 'check' })}
+    <h3 class="sub-t">BACKUP</h3>
     <p class="hint">I dati sono solo su questo telefono. Ogni tanto salva un backup.</p>
-    <div class="btns">
-      <button class="btn" data-a="exportData">Esporta backup</button>
-      <label class="btn">Importa backup<input type="file" id="import-file" accept="application/json,.json" hidden></label>
+    <div class="btn-row">
+      <button class="btn-line dark" data-a="exportData">Esporta backup</button>
+      <label class="btn-line dark">Importa backup<input type="file" id="import-file" accept="application/json,.json" hidden></label>
     </div>
-    <button class="btn danger-ghost" data-a="resetAll">Cancella tutti i dati</button>`;
+    <button class="btn-danger" data-a="resetAll">${ic('trash')} Cancella tutti i dati</button>`;
 }
 
 function streakInfoSheet() {
   const st = computeStreak();
   return `
-    <h2>Come funziona la serie 🔥</h2>
+    <h2 class="sheet-t">COME FUNZIONA LA SERIE</h2>
     <ul class="rules">
-      <li>Ogni giorno in cui segni almeno una pagina (o un ripasso) la serie sale di 1.</li>
-      <li>I giorni liberi non contano: non la rompono e non la fanno salire (a meno che tu studi lo stesso).</li>
-      <li>Se salti un giorno di studio, la serie torna a zero…</li>
-      <li>…a meno che tu abbia un <b>jolly 🛟</b>: ne guadagni uno ogni 7 giorni di fila (massimo ${MAX_JOLLY}) e si usa da solo.</li>
-      <li>Hai dimenticato di segnare ieri? Nella finestra delle pagine puoi scegliere "Ieri".</li>
+      <li><b>+1</b><span>Ogni giorno in cui segni almeno una pagina (o un ripasso) la serie sale di 1.</span></li>
+      <li><b>😌</b><span>I giorni liberi non la rompono. Se studi lo stesso, contano!</span></li>
+      <li><b>0</b><span>Se salti un giorno di studio, la serie torna a zero…</span></li>
+      <li><b>🛟</b><span>…a meno che tu abbia un jolly: ne guadagni uno ogni 7 giorni di fila (massimo ${MAX_JOLLY}) e si usa da solo.</span></li>
+      <li><b>↩</b><span>Hai dimenticato di segnare ieri? Nella finestra delle pagine scegli "Ieri".</span></li>
     </ul>
-    <p class="center">Record attuale: <b>${st.best}</b> giorni</p>
-    <button class="btn big" data-a="closeSheet">Ok</button>`;
+    <p class="center sheet-p">Record attuale: <b>${st.best}</b> giorni</p>
+    ${cta('Ok, ci sto', 'closeSheet', { icon: 'flame' })}`;
 }
 
 /* ---------- feedback ---------- */
@@ -634,7 +667,7 @@ function toast(msg) {
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.hidden = true, 300); }, 2600);
 }
 function confetti() {
-  const colors = ['#FF6B4A', '#FFC24B', '#4ACB8F', '#5B8DEF', '#E35BB0'];
+  const colors = ['#D9F43B', '#5B4FE6', '#FFFFFF', '#8F86FF', '#232228'];
   for (let i = 0; i < 70; i++) {
     const c = document.createElement('i');
     c.className = 'confetto';
@@ -652,10 +685,10 @@ function celebrate(trophies) {
   confetti();
   if (navigator.vibrate) navigator.vibrate(60);
   openSheet(`
-    <div class="center celebrate">
-      <p class="muted">${trophies.length > 1 ? 'Nuovi trofei!' : 'Nuovo trofeo!'}</p>
-      ${trophies.map(t => `<div class="t-big">${t.icon}</div><h2>${t.name}</h2><p class="muted">${t.desc}</p>`).join('')}
-      <button class="btn primary big" data-a="closeSheet">Evvai!</button>
+    <div class="celebrate">
+      <p class="hero-t dark">${trophies.length > 1 ? 'NUOVI TROFEI' : 'NUOVO TROFEO'}</p>
+      ${trophies.map(t => `${sticker(t.icon, 't-big')}<h2 class="sheet-t">${t.name.toUpperCase()}</h2><p class="sheet-p">${t.desc}</p>`).join('')}
+      ${cta('Evvai!', 'closeSheet', { icon: 'trophy' })}
     </div>`);
 }
 
@@ -665,7 +698,7 @@ function afterChange(prevStreak) {
   const fresh = checkTrophies();
   render();
   const st = computeStreak();
-  if (fresh.length) setTimeout(() => celebrate(fresh), 250);
+  if (fresh.length) setTimeout(() => celebrate(fresh), 380);
   else if (prevStreak != null && st.streak > prevStreak) toast(`🔥 ${st.streak} ${st.streak === 1 ? 'giorno' : 'giorni'} di fila!`);
   return fresh;
 }
@@ -709,11 +742,11 @@ const actions = {
   },
 
   newExam() {
-    openSheet(`<h2>Nuovo esame</h2>${examForm(null)}<button class="btn primary big" data-a="saveExam">Crea il piano</button>`);
+    openSheet(`<h2 class="sheet-t">NUOVO ESAME</h2>${examForm(null)}${cta('Crea il piano', 'saveExam', { icon: 'flame' })}`);
   },
   editExam(el) {
     const e = examById(el.dataset.id);
-    openSheet(`<h2>Modifica esame</h2>${examForm(e)}<button class="btn primary big" data-a="saveExam">Salva</button>`);
+    openSheet(`<h2 class="sheet-t">MODIFICA ESAME</h2>${examForm(e)}${cta('Salva', 'saveExam', { icon: 'check' })}`);
   },
   saveExam() {
     const e = readExamForm();
@@ -853,6 +886,10 @@ document.addEventListener('change', async e => {
 // Se l'app resta aperta oltre la mezzanotte o torna in primo piano, aggiorna
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { checkTrophies(); render(); } });
 
+$('#tabs').innerHTML = `
+  <button data-a="tab" data-tab="exams" aria-label="Esami">${ic('book')}<small>Esami</small></button>
+  <button data-a="tab" data-tab="today" class="center" aria-label="Oggi">${ic('flame')}</button>
+  <button data-a="tab" data-tab="trophies" aria-label="Trofei">${ic('trophy')}<small>Trofei</small></button>`;
 if (!state.settings) ui.onb = 0;
 else if (!state.exams.length) ui.onb = 2;
 checkTrophies();
